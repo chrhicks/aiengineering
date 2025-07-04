@@ -1,0 +1,334 @@
+{
+  "plan_metadata": {
+    "context_engineering_version": "2.0",
+    "llm_optimization": "structured_reasoning",
+    "cognitive_load_level": "moderate",
+    "format_version": "enhanced-1.0",
+    "created_date": "2025-07-04",
+    "plan_type": "software_migration"
+  },
+  "execution_context": {
+    "base_understanding": "What the LLM should know before starting execution",
+    "reference_points": ["Key files to reference", "Documentation to consult", "Examples to follow"],
+    "success_definition": "Clear description of what success looks like for the entire plan",
+    "failure_indicators": ["Red flags that indicate the plan is failing", "When to stop and reassess"],
+    "assumptions": ["Key assumptions that must hold true", "Environmental prerequisites"],
+    "constraints": ["Technical limitations", "Resource constraints", "Timeline requirements"]
+  },
+  "decision_framework": {
+    "critical_decisions": [
+      {
+        "decision_point": "Architecture approach selection",
+        "importance": "high",
+        "impact_areas": ["maintainability", "performance", "timeline"],
+        "decision_criteria": {
+          "simplicity": { "weight": 0.4, "description": "Ease of implementation and understanding" },
+          "maintainability": { "weight": 0.3, "description": "Long-term code health" },
+          "performance": { "weight": 0.2, "description": "Runtime efficiency" },
+          "timeline": { "weight": 0.1, "description": "Speed to completion" }
+        },
+        "options": [
+          {
+            "id": "mvp-approach",
+            "name": "MVP Implementation",
+            "description": "Direct port with minimal changes",
+            "pros": ["Fast implementation", "Low risk", "Matches reference"],
+            "cons": ["Technical debt", "Limited testability"],
+            "effort_estimate": "3-4 days",
+            "risk_level": "low",
+            "evaluation_scores": {
+              "simplicity": 0.9,
+              "maintainability": 0.4,
+              "performance": 0.7,
+              "timeline": 0.9
+            }
+          }
+        ],
+        "selected_option": "mvp-approach",
+        "rationale": "MVP approach selected due to timeline constraints and reference compatibility requirements"
+      }
+    ]
+  },
+  "phases": [
+    {
+      "id": "phase-1",
+      "name": "Foundation Setup",
+      "order": 1,
+      "duration": "1 day",
+      "description": "Establish basic infrastructure and dependencies",
+      "context_management": {
+        "inherited_context": {
+          "project_state": "Empty connection package with basic Fastify setup",
+          "available_resources": ["Reference implementation", "Existing SecretsManager"],
+          "validated_assumptions": ["Reference code is accessible", "Development environment works"],
+          "known_constraints": ["Must maintain API compatibility", "Limited time for over-engineering"]
+        },
+        "generated_context": {
+          "new_artifacts": "Dependencies installed, type definitions created, error classes ported",
+          "validated_functionality": "Basic project structure with TypeScript compilation",
+          "critical_decisions": "Package versions selected, type structure established",
+          "next_phase_enablers": "Service interfaces can be created, ConnectionManager can be implemented"
+        }
+      },
+      "tasks": [
+        {
+          "id": "task-1.1",
+          "name": "Install Required Dependencies",
+          "intent": "Add necessary packages for BigQuery integration, validation, and testing",
+          "context": {
+            "background": "Reference implementation uses specific versions of these packages",
+            "dependencies": "None - this is the first task",
+            "constraints": ["Must use compatible versions", "Avoid unnecessary dependencies"],
+            "reference_files": ["reference/package.json", "current packages/connection/package.json"]
+          },
+          "reasoning": {
+            "approach": "Add only essential dependencies to match reference functionality",
+            "alternatives": ["Add all dependencies at once", "Add dependencies as needed per task"],
+            "decision_factors": ["Version compatibility", "Build speed", "Bundle size"],
+            "risks": ["Version conflicts", "Breaking changes in newer versions"],
+            "mitigation": "Pin to specific versions used in reference implementation"
+          },
+          "execution": {
+            "steps": [
+              "Review reference implementation package.json for required dependencies",
+              "Check current package.json for existing dependencies",
+              "Run pnpm add commands for missing dependencies",
+              "Verify installation with compilation test"
+            ],
+            "commands": [
+              "pnpm --filter connection add zod@^3.25.71",
+              "pnpm --filter connection add @google-cloud/bigquery@^8.1.0", 
+              "pnpm --filter connection add uuid@^11.1.0",
+              "pnpm --filter connection add -D vitest@^3.2.4 @vitest/ui@^3.2.4"
+            ],
+            "files_created": [],
+            "files_modified": ["packages/connection/package.json", "pnpm-lock.yaml"]
+          },
+          "validation": {
+            "understanding_check": {
+              "what_am_i_doing": "Installing TypeScript packages for database connectivity and validation",
+              "why_these_packages": "zod for validation, bigquery for database, uuid for IDs, vitest for testing",
+              "potential_issues": ["Version conflicts", "Network connectivity issues"],
+              "confidence_threshold": 9
+            },
+            "progress_checkpoints": [
+              "Dependencies appear in package.json",
+              "No installation errors",
+              "TypeScript compilation still works"
+            ],
+            "completion_criteria": [
+              "All specified packages in package.json with correct versions",
+              "pnpm install completes without errors",
+              "Basic TypeScript compilation succeeds"
+            ],
+            "integration_tests": [
+              "Import statements work for new packages",
+              "No type errors from new dependencies"
+            ]
+          },
+          "recovery": {
+            "failure_indicators": [
+              "Installation errors",
+              "Version conflict warnings",
+              "Compilation failures after installation"
+            ],
+            "rollback_procedure": [
+              "Remove failing packages from package.json",
+              "Run pnpm install to restore previous state",
+              "Try alternative package versions"
+            ],
+            "alternative_approaches": [
+              "Install packages one at a time to isolate issues",
+              "Use different package versions from reference",
+              "Implement functionality without problematic packages"
+            ],
+            "escalation": "If multiple package installation attempts fail, reassess package selection strategy"
+          }
+        },
+        {
+          "id": "task-1.2",
+          "name": "Create Core Type Definitions",
+          "intent": "Establish TypeScript interfaces matching reference implementation exactly",
+          "context": {
+            "background": "Type safety is critical for API compatibility and development productivity",
+            "dependencies": ["Dependencies installed (task-1.1)"],
+            "constraints": ["Must match reference types exactly", "Should follow existing project patterns"],
+            "reference_files": [
+              "reference/types/Connection.ts",
+              "reference/types/ConnectionRequest.ts", 
+              "reference/types/ConnectionResponse.ts"
+            ]
+          },
+          "reasoning": {
+            "approach": "Copy type definitions from reference with minimal adaptation",
+            "alternatives": ["Generate types from API schema", "Create types from scratch"],
+            "decision_factors": ["Reference compatibility", "Type safety", "Development speed"],
+            "risks": ["Type mismatches", "Missing required fields", "Incompatible with existing code"],
+            "mitigation": "Careful comparison with reference implementation and validation with existing services"
+          },
+          "execution": {
+            "steps": [
+              "Examine reference type definitions for structure and patterns",
+              "Create src/types directory if it doesn't exist", 
+              "Copy and adapt type definitions to match current project structure",
+              "Validate types compile and export correctly",
+              "Create index file for convenient imports"
+            ],
+            "files_created": [
+              "src/types/Connection.ts",
+              "src/types/ConnectionRequest.ts",
+              "src/types/ConnectionResponse.ts",
+              "src/types/QueryRequest.ts", 
+              "src/types/QueryResponse.ts",
+              "src/types/index.ts"
+            ],
+            "files_modified": [],
+            "validation_commands": ["pnpm --filter connection build"]
+          },
+          "validation": {
+            "understanding_check": {
+              "what_am_i_creating": "TypeScript interfaces for all API request/response objects",
+              "why_exact_matching": "Ensures API compatibility and prevents integration issues",
+              "key_types_needed": ["Connection", "ConnectionRequest", "QueryRequest", "QueryResponse"],
+              "confidence_threshold": 8
+            },
+            "progress_checkpoints": [
+              "Each type file exports expected interfaces",
+              "No TypeScript compilation errors",
+              "Index file exports all types correctly"
+            ],
+            "completion_criteria": [
+              "All 5 type files created with proper exports",
+              "Types match reference implementation structure",
+              "TypeScript compilation succeeds",
+              "Index file provides convenient access to all types"
+            ],
+            "integration_tests": [
+              "Can import types in other files",
+              "Types are compatible with Zod schemas (when created)",
+              "No conflicts with existing types"
+            ]
+          },
+          "recovery": {
+            "failure_indicators": [
+              "TypeScript compilation errors",
+              "Missing required fields in types",
+              "Type conflicts with existing code"
+            ],
+            "rollback_procedure": [
+              "Delete problematic type files",
+              "Restore previous working state",
+              "Identify specific type issues"
+            ],
+            "alternative_approaches": [
+              "Create minimal type definitions first, expand later",
+              "Generate types from JSON schema",
+              "Create types incrementally as needed by each component"
+            ],
+            "escalation": "If type compatibility issues persist, reassess reference implementation differences"
+          }
+        }
+      ]
+    }
+  ],
+  "validation_framework": {
+    "phase_validation": {
+      "understanding_validation": {
+        "description": "Verify LLM comprehends phase objectives before starting",
+        "criteria": "Can explain what will be built and why",
+        "method": "Self-assessment with specific questions",
+        "threshold": "Confidence > 8/10"
+      },
+      "progress_validation": {
+        "description": "Check intermediate progress during phase execution",
+        "criteria": "Key milestones completed successfully",
+        "method": "Automated checks and manual verification",
+        "frequency": "After each task"
+      },
+      "completion_validation": {
+        "description": "Verify phase objectives fully met before proceeding",
+        "criteria": "All tasks complete, integration tests pass",
+        "method": "Comprehensive validation suite",
+        "threshold": "100% task completion, all tests pass"
+      }
+    },
+    "task_validation": {
+      "pre_execution": {
+        "understanding_check": "Validate task comprehension",
+        "dependency_check": "Verify prerequisites completed",
+        "resource_check": "Confirm required resources available"
+      },
+      "during_execution": {
+        "progress_checkpoints": "Intermediate validation points",
+        "error_detection": "Early warning signs of problems",
+        "course_correction": "Ability to adjust approach mid-task"
+      },
+      "post_execution": {
+        "completion_verification": "Confirm task objectives met",
+        "integration_testing": "Verify works with existing system",
+        "quality_assessment": "Evaluate implementation quality"
+      }
+    }
+  },
+  "cognitive_load_management": {
+    "information_hierarchy": {
+      "primary": "Current task requirements and immediate context",
+      "secondary": "Dependencies, constraints, and validation criteria",
+      "tertiary": "Background information and broader project context",
+      "reference": "Available for lookup but not actively processed"
+    },
+    "context_window_strategy": {
+      "focus_principle": "Process only information needed for current task",
+      "context_refresh": "Reload essential context at phase boundaries",
+      "information_filtering": "Exclude non-essential details from active context",
+      "progressive_disclosure": "Reveal complexity gradually as needed"
+    },
+    "decision_point_handling": {
+      "simple_decisions": "Use heuristics and established patterns",
+      "complex_decisions": "Employ Tree-of-Thoughts analysis",
+      "uncertain_decisions": "Seek clarification rather than assume",
+      "critical_decisions": "Full analysis with multiple alternatives"
+    }
+  },
+  "error_recovery": {
+    "failure_detection": {
+      "early_warning_signs": ["Compilation errors", "Test failures", "Unexpected behavior"],
+      "escalation_triggers": ["Repeated failures", "Fundamental approach issues", "Resource constraints"],
+      "monitoring_points": ["Task completion", "Phase transitions", "Integration points"]
+    },
+    "recovery_procedures": {
+      "task_level": {
+        "rollback": "Undo changes and return to previous working state",
+        "alternative_approach": "Try different implementation strategy",
+        "simplification": "Reduce scope to core requirements",
+        "escalation": "Request human intervention"
+      },
+      "phase_level": {
+        "checkpoint_restore": "Return to last successful phase completion",
+        "approach_modification": "Adjust overall strategy based on learnings",
+        "scope_reduction": "Focus on essential functionality only",
+        "plan_revision": "Update plan based on discovered constraints"
+      }
+    },
+    "prevention_strategies": {
+      "validation_frequency": "Check progress frequently to catch issues early",
+      "incremental_progress": "Make small changes and validate before proceeding",
+      "fallback_planning": "Prepare alternative approaches for high-risk tasks",
+      "assumption_validation": "Regularly verify assumptions still hold true"
+    }
+  },
+  "success_metrics": {
+    "quantitative": {
+      "task_completion_rate": "Percentage of tasks completed successfully without rework",
+      "validation_pass_rate": "Percentage of validation checks passed on first attempt", 
+      "error_recovery_rate": "Percentage of errors successfully recovered from",
+      "timeline_adherence": "Actual vs. estimated completion time"
+    },
+    "qualitative": {
+      "comprehension_quality": "LLM self-reported understanding confidence",
+      "implementation_quality": "Code quality and adherence to patterns",
+      "integration_smoothness": "Ease of integration with existing systems",
+      "maintainability": "Code structure and documentation quality"
+    }
+  }
+}

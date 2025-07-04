@@ -1,0 +1,354 @@
+{
+  "task_structure_comparison": {
+    "description": "Before and after examples showing enhanced task structure with Context Engineering principles",
+    "examples": [
+      {
+        "scenario": "Complex Service Implementation",
+        "before": {
+          "id": "task-2.2",
+          "name": "Port ConnectionManager",
+          "description": "Copy ConnectionManager from reference with minimal DI integration",
+          "files": ["src/services/ConnectionManager.ts"],
+          "notes": "Adapt to use existing SecretsManager service"
+        },
+        "after": {
+          "id": "task-2.2",
+          "name": "Port ConnectionManager with SecretsManager Integration",
+          "intent": "Create production-ready connection management service that adapts reference implementation to work with existing infrastructure",
+          "context": {
+            "background": "ConnectionManager is the core business logic for all database connection operations. Must maintain exact API compatibility while integrating with existing SecretsManager.",
+            "dependencies": [
+              "ISecretsManager interface exists (task-2.1)",
+              "Type definitions available (task-1.3)",
+              "Error classes ported (task-1.4)"
+            ],
+            "constraints": [
+              "Must use existing SecretsManager service instance",
+              "Cannot modify SecretsManager interface",
+              "Must maintain exact reference API behavior",
+              "Minimal DI - interfaces only, no container"
+            ],
+            "reference_files": [
+              "reference/services/ConnectionManager.ts",
+              "packages/connection/src/secrets/SecretsManager.ts",
+              "reference/interfaces/ISecretsManager.ts"
+            ]
+          },
+          "reasoning": {
+            "approach": "Copy reference ConnectionManager structure, then adapt constructor and secrets integration points to use existing service",
+            "alternatives": [
+              "Rewrite ConnectionManager from scratch to match existing patterns",
+              "Modify existing SecretsManager to match reference interface",
+              "Create adapter layer between reference and existing SecretsManager"
+            ],
+            "decision_factors": [
+              "Reference compatibility requirement (high priority)",
+              "Minimal change to existing services (medium priority)", 
+              "Implementation speed (high priority)",
+              "Future maintainability (medium priority)"
+            ],
+            "selected_rationale": "Direct adaptation approach balances speed with compatibility while respecting existing service boundaries",
+            "risks": [
+              "Interface mismatch between reference expectations and existing SecretsManager",
+              "Method signature differences requiring adaptation logic",
+              "Error handling pattern differences between implementations"
+            ],
+            "mitigation": [
+              "Careful interface analysis before implementation",
+              "Create thin adapter methods if needed",
+              "Comprehensive testing with existing SecretsManager"
+            ]
+          },
+          "execution": {
+            "steps": [
+              "Analyze reference ConnectionManager to understand core structure and dependencies",
+              "Compare reference ISecretsManager interface with existing SecretsManager public methods",
+              "Identify adaptation points where integration logic is needed",
+              "Copy reference ConnectionManager.ts as starting point",
+              "Modify constructor to accept existing SecretsManager instance",
+              "Adapt all secretsManager usage to call existing service methods",
+              "Update error handling to match existing patterns where needed",
+              "Add comprehensive JSDoc documentation for integration points"
+            ],
+            "files_created": [
+              "src/services/ConnectionManager.ts"
+            ],
+            "files_modified": [],
+            "integration_points": [
+              "Constructor dependency injection",
+              "SecretsManager method calls",
+              "Error handling and propagation",
+              "Connection lifecycle management"
+            ]
+          },
+          "validation": {
+            "understanding_check": {
+              "what_am_i_building": "A service that manages database connections using existing secrets infrastructure",
+              "key_integration_challenge": "Making reference ConnectionManager work with existing SecretsManager without changing either interface",
+              "success_criteria": "ConnectionManager can create/read/update/delete connections using existing SecretsManager",
+              "potential_blockers": [
+                "Method signature mismatches",
+                "Different error handling patterns",
+                "Async/await compatibility issues"
+              ],
+              "confidence_threshold": 8
+            },
+            "progress_checkpoints": [
+              "Reference ConnectionManager structure copied and compiles",
+              "Constructor accepts existing SecretsManager type",
+              "All secretsManager method calls updated to existing interface",
+              "Error handling adapted to existing patterns",
+              "Basic integration test passes"
+            ],
+            "completion_criteria": [
+              "ConnectionManager class exports correctly",
+              "All CRUD operations implemented and functional",
+              "Integration with existing SecretsManager works without errors",
+              "Error handling consistent with existing patterns",
+              "TypeScript compilation succeeds with no errors",
+              "Basic unit tests pass with mock SecretsManager"
+            ],
+            "integration_tests": [
+              "ConnectionManager can be instantiated with existing SecretsManager",
+              "Create connection stores secrets using existing service",
+              "Read connection retrieves and decrypts secrets correctly",
+              "Update connection modifies secrets appropriately",
+              "Delete connection removes secrets completely",
+              "Error conditions handled gracefully"
+            ]
+          },
+          "recovery": {
+            "failure_indicators": [
+              "TypeScript compilation errors after integration",
+              "Method signature mismatches causing runtime errors",
+              "Secrets operations failing with existing SecretsManager",
+              "Error handling causing unhandled exceptions"
+            ],
+            "rollback_procedure": [
+              "Restore previous working state (empty ConnectionManager)",
+              "Identify specific integration failure point",
+              "Test reference ConnectionManager in isolation",
+              "Test existing SecretsManager independently"
+            ],
+            "alternative_approaches": [
+              "Create thin adapter layer between ConnectionManager and SecretsManager",
+              "Modify ConnectionManager to match existing SecretsManager interface exactly",
+              "Implement ConnectionManager from scratch using existing patterns",
+              "Create facade pattern that wraps both services"
+            ],
+            "escalation": "If integration approaches fail after 2 attempts, reassess whether reference ConnectionManager is compatible with existing architecture"
+          }
+        },
+        "improvements": [
+          "Added explicit intent and reasoning for better LLM understanding",
+          "Detailed context including dependencies, constraints, and reference files",
+          "Alternative approaches with decision rationale",
+          "Risk identification and mitigation strategies",
+          "Comprehensive validation at multiple levels",
+          "Structured recovery procedures for different failure modes"
+        ]
+      },
+      {
+        "scenario": "API Endpoint Implementation",
+        "before": {
+          "id": "task-3.3",
+          "name": "Implement CRUD endpoints",
+          "description": "Implement GET, POST, PUT, DELETE /connections",
+          "files": ["src/routes/ConnectionRoutes.ts"],
+          "endpoints": [
+            "GET /connections",
+            "POST /connections", 
+            "GET /connections/:id",
+            "PUT /connections/:id",
+            "DELETE /connections/:id"
+          ]
+        },
+        "after": {
+          "id": "task-3.3",
+          "name": "Implement Core Connection CRUD Endpoints",
+          "intent": "Create REST API endpoints that provide complete connection lifecycle management with exact reference compatibility",
+          "context": {
+            "background": "These 5 endpoints form the core API for connection management. Must match reference implementation exactly for client compatibility.",
+            "dependencies": [
+              "ConnectionManager service ready (task-2.2)",
+              "Validation schemas created (task-3.1)",
+              "BaseRoute supports all HTTP methods (task-3.2)",
+              "Authentication middleware available (task-2.4)"
+            ],
+            "constraints": [
+              "Response format must match reference exactly",
+              "Error responses must use existing error classes",
+              "Must handle all reference validation scenarios",
+              "Performance should be comparable to reference"
+            ],
+            "reference_files": [
+              "reference/routes/ConnectionRoutes.ts",
+              "reference/types/ConnectionRequest.ts",
+              "reference/types/ConnectionResponse.ts"
+            ]
+          },
+          "reasoning": {
+            "approach": "Implement each endpoint individually, starting with GET (safest) and ending with DELETE (most destructive)",
+            "alternatives": [
+              "Implement all endpoints simultaneously",
+              "Start with POST/PUT (most complex logic)",
+              "Use code generation from OpenAPI spec"
+            ],
+            "decision_factors": [
+              "Risk management - start with safe operations",
+              "Testing incrementally - validate each endpoint works",
+              "Debugging ease - isolate issues to specific endpoints"
+            ],
+            "selected_rationale": "Incremental implementation reduces risk and enables early validation",
+            "risks": [
+              "Response format inconsistencies with reference",
+              "Validation logic differences causing client failures",
+              "Error handling not matching reference behavior",
+              "Performance issues with large datasets"
+            ],
+            "mitigation": [
+              "Direct comparison of response formats with reference",
+              "Comprehensive validation testing",
+              "Error scenario testing with reference patterns",
+              "Performance benchmarking against reference"
+            ]
+          },
+          "execution": {
+            "steps": [
+              "Set up ConnectionRoutes class extending BaseRoute pattern",
+              "Implement GET /connections with pagination and filtering",
+              "Implement GET /connections/:id with proper error handling",
+              "Implement POST /connections with validation and secret storage",
+              "Implement PUT /connections/:id with partial update support",
+              "Implement DELETE /connections/:id with proper cleanup",
+              "Add comprehensive error handling for all endpoints",
+              "Register all routes with proper middleware chain"
+            ],
+            "files_created": [
+              "src/routes/ConnectionRoutes.ts"
+            ],
+            "files_modified": [
+              "src/App.ts (route registration)"
+            ],
+            "endpoint_specifications": [
+              {
+                "method": "GET",
+                "path": "/connections",
+                "description": "List connections with optional filtering and pagination",
+                "query_params": ["type", "limit", "offset"],
+                "response_format": "{ data: Connection[], pagination: { total, limit, offset, hasMore } }",
+                "error_scenarios": ["Invalid query parameters", "Database connection failure"]
+              },
+              {
+                "method": "POST", 
+                "path": "/connections",
+                "description": "Create new database connection",
+                "body_schema": "ConnectionCreateRequest",
+                "response_format": "{ data: Connection }",
+                "error_scenarios": ["Invalid credentials", "Duplicate name", "Validation failure"]
+              }
+            ]
+          },
+          "validation": {
+            "understanding_check": {
+              "what_am_i_building": "5 REST endpoints for complete connection lifecycle management",
+              "critical_requirements": [
+                "Exact response format matching reference",
+                "All validation scenarios handled",
+                "Proper error responses",
+                "Authentication integration"
+              ],
+              "success_criteria": "All endpoints work identically to reference implementation",
+              "confidence_threshold": 8
+            },
+            "progress_checkpoints": [
+              "GET /connections returns proper response format",
+              "POST /connections creates and stores connection correctly",
+              "Error handling matches reference patterns",
+              "All endpoints integrate with authentication middleware",
+              "Validation schemas work correctly for all inputs"
+            ],
+            "completion_criteria": [
+              "All 5 endpoints implemented and registered",
+              "Response formats match reference exactly",
+              "Error handling consistent with reference",
+              "All validation scenarios covered",
+              "Integration tests pass for all endpoints",
+              "Performance within 20% of reference"
+            ],
+            "integration_tests": [
+              "Create connection via POST, retrieve via GET",
+              "Update connection via PUT, verify changes",
+              "Delete connection via DELETE, verify removal",
+              "List connections with various filters",
+              "Error scenarios return proper error responses",
+              "Authentication required for all endpoints"
+            ]
+          },
+          "recovery": {
+            "failure_indicators": [
+              "Response format doesn't match reference",
+              "Validation errors not handled properly",
+              "Database operations failing",
+              "Authentication integration broken"
+            ],
+            "rollback_procedure": [
+              "Comment out failing endpoints",
+              "Test working endpoints independently", 
+              "Identify specific failure point",
+              "Compare failing endpoint with reference implementation"
+            ],
+            "alternative_approaches": [
+              "Implement endpoints one at a time with full testing",
+              "Copy reference implementation directly and adapt",
+              "Use different routing pattern if BaseRoute issues found",
+              "Implement minimal endpoints first, add features incrementally"
+            ],
+            "escalation": "If endpoint compatibility issues persist, reassess BaseRoute pattern and routing infrastructure"
+          }
+        },
+        "improvements": [
+          "Clear intent explaining the business value",
+          "Detailed context with dependencies and constraints",
+          "Risk-based implementation ordering",
+          "Specific endpoint specifications with expected formats",
+          "Comprehensive validation including performance criteria",
+          "Structured recovery with alternative implementation strategies"
+        ]
+      }
+    ],
+    "key_enhancements": {
+      "context_richness": {
+        "before": "Minimal description and file list",
+        "after": "Rich context with background, dependencies, constraints, and reference files"
+      },
+      "reasoning_transparency": {
+        "before": "No explanation of approach or alternatives",
+        "after": "Explicit reasoning with alternatives, decision factors, and rationale"
+      },
+      "risk_management": {
+        "before": "No risk identification",
+        "after": "Comprehensive risk identification with mitigation strategies"
+      },
+      "validation_depth": {
+        "before": "Basic completion criteria",
+        "after": "Multi-level validation with understanding checks, progress checkpoints, and integration tests"
+      },
+      "error_recovery": {
+        "before": "No recovery procedures",
+        "after": "Structured recovery with failure indicators, rollback procedures, and alternative approaches"
+      },
+      "execution_clarity": {
+        "before": "High-level task description",
+        "after": "Step-by-step execution plan with integration points and specifications"
+      }
+    },
+    "llm_benefits": {
+      "comprehension": "Rich context and explicit reasoning improve LLM understanding of complex tasks",
+      "execution": "Detailed steps and specifications reduce ambiguity during implementation",
+      "validation": "Multi-level validation enables self-correction and quality assurance",
+      "recovery": "Structured recovery procedures enable graceful handling of failures",
+      "learning": "Reasoning transparency helps LLMs understand decision-making patterns"
+    }
+  }
+}
