@@ -1,11 +1,12 @@
 {
   "plan_metadata": {
-    "context_engineering_version": "2.0",
-    "llm_optimization": "structured_reasoning",
+    "context_engineering_version": "3.0",
+    "llm_optimization": "structured_reasoning_with_context_isolation",
     "cognitive_load_level": "moderate",
-    "format_version": "enhanced-1.0",
-    "created_date": "2025-07-04",
-    "plan_type": "software_migration"
+    "format_version": "enhanced-2.0",
+    "created_date": "2025-07-05",
+    "plan_type": "software_migration",
+    "context_strategy": "master_child_delegation"
   },
   "execution_context": {
     "base_understanding": "What the LLM should know before starting execution",
@@ -13,7 +14,22 @@
     "success_definition": "Clear description of what success looks like for the entire plan",
     "failure_indicators": ["Red flags that indicate the plan is failing", "When to stop and reassess"],
     "assumptions": ["Key assumptions that must hold true", "Environmental prerequisites"],
-    "constraints": ["Technical limitations", "Resource constraints", "Timeline requirements"]
+    "constraints": ["Technical limitations", "Resource constraints", "Timeline requirements"],
+    "context_management": {
+      "context_budget": "Maximum tokens allocated across all phases",
+      "loading_strategy": "just_in_time",
+      "failure_monitoring": {
+        "poisoning_detection": "Monitor for persistent hallucinations in context",
+        "distraction_threshold": "Performance degradation monitoring at 100k+ tokens",
+        "confusion_prevention": "Relevance filtering for tools and information",
+        "clash_resolution": "Contradiction detection and resolution procedures"
+      },
+      "auto_compaction": {
+        "trigger_threshold": "95% of context window capacity",
+        "summarization_strategy": "Trajectory summarization with key decision preservation",
+        "rollback_capability": "Return to last known good state on failure"
+      }
+    }
   },
   "decision_framework": {
     "critical_decisions": [
@@ -56,55 +72,90 @@
       "order": 1,
       "duration": "1 day",
       "description": "Establish basic infrastructure and dependencies",
-      "context_management": {
-        "inherited_context": {
-          "project_state": "Empty connection package with basic Fastify setup",
-          "available_resources": ["Reference implementation", "Existing SecretsManager"],
-          "validated_assumptions": ["Reference code is accessible", "Development environment works"],
-          "known_constraints": ["Must maintain API compatibility", "Limited time for over-engineering"]
-        },
-        "generated_context": {
-          "new_artifacts": "Dependencies installed, type definitions created, error classes ported",
-          "validated_functionality": "Basic project structure with TypeScript compilation",
-          "critical_decisions": "Package versions selected, type structure established",
-          "next_phase_enablers": "Service interfaces can be created, ConnectionManager can be implemented"
-        }
-      },
-      "tasks": [
+        "context_management": {
+          "inherited_context": {
+            "project_state": "Empty connection package with basic Fastify setup",
+            "available_resources": ["Reference implementation", "Existing SecretsManager"],
+            "validated_assumptions": ["Reference code is accessible", "Development environment works"],
+            "known_constraints": ["Must maintain API compatibility", "Limited time for over-engineering"]
+          },
+          "generated_context": {
+            "new_artifacts": "Dependencies installed, type definitions created, error classes ported",
+            "validated_functionality": "Basic project structure with TypeScript compilation",
+            "critical_decisions": "Package versions selected, type structure established",
+            "next_phase_enablers": "Service interfaces can be created, ConnectionManager can be implemented"
+          },
+          "context_engineering": {
+            "write_strategy": {
+              "scratchpad_usage": "Store intermediate decisions and progress in phase state",
+              "memory_persistence": "Save critical decisions for future phase reference"
+            },
+            "select_strategy": {
+              "dynamic_loading": "Load context just-in-time based on current task needs",
+              "relevance_filtering": "Include only information relevant to current phase"
+            },
+            "compress_strategy": {
+              "summarization_points": "End of each task, before phase transition",
+              "essential_preservation": "Critical decisions, validation results, error patterns"
+            },
+            "isolate_strategy": {
+              "agent_delegation": "Use child agents for isolated research, testing, validation tasks",
+              "context_boundaries": "Separate concerns between coordination and execution"
+            }
+          }
+        },      "tasks": [
         {
           "id": "task-1.1",
           "name": "Install Required Dependencies",
           "intent": "Add necessary packages for BigQuery integration, validation, and testing",
-          "context": {
-            "background": "Reference implementation uses specific versions of these packages",
-            "dependencies": "None - this is the first task",
-            "constraints": ["Must use compatible versions", "Avoid unnecessary dependencies"],
-            "reference_files": ["reference/package.json", "current packages/connection/package.json"]
-          },
-          "reasoning": {
+            "context": {
+              "background": "Reference implementation uses specific versions of these packages",
+              "dependencies": "None - this is the first task",
+              "constraints": ["Must use compatible versions", "Avoid unnecessary dependencies"],
+              "reference_files": ["reference/package.json", "current packages/connection/package.json"],
+              "context_budget": "2000 tokens maximum for this task",
+              "loading_strategy": "Load reference package.json just-in-time, not in initial context"
+            },          "reasoning": {
             "approach": "Add only essential dependencies to match reference functionality",
             "alternatives": ["Add all dependencies at once", "Add dependencies as needed per task"],
             "decision_factors": ["Version compatibility", "Build speed", "Bundle size"],
             "risks": ["Version conflicts", "Breaking changes in newer versions"],
             "mitigation": "Pin to specific versions used in reference implementation"
           },
-          "execution": {
-            "steps": [
-              "Review reference implementation package.json for required dependencies",
-              "Check current package.json for existing dependencies",
-              "Run pnpm add commands for missing dependencies",
-              "Verify installation with compilation test"
-            ],
-            "commands": [
-              "pnpm --filter connection add zod@^3.25.71",
-              "pnpm --filter connection add @google-cloud/bigquery@^8.1.0", 
-              "pnpm --filter connection add uuid@^11.1.0",
-              "pnpm --filter connection add -D vitest@^3.2.4 @vitest/ui@^3.2.4"
-            ],
-            "files_created": [],
-            "files_modified": ["packages/connection/package.json", "pnpm-lock.yaml"]
-          },
-          "validation": {
+            "execution": {
+              "strategy": "master_child_delegation",
+              "master_coordination": {
+                "objective": "Ensure all required dependencies are installed and compatible",
+                "child_tasks": [
+                  {
+                    "agent_type": "research_agent",
+                    "task": "Analyze reference package.json and identify required dependencies",
+                    "isolated_context": "Reference implementation files only",
+                    "return_format": "List of dependencies with versions and justification"
+                  },
+                  {
+                    "agent_type": "execution_agent", 
+                    "task": "Install dependencies and verify compilation",
+                    "isolated_context": "Current project structure and dependency list",
+                    "return_format": "Installation status and compilation results"
+                  }
+                ]
+              },
+              "fallback_steps": [
+                "Review reference implementation package.json for required dependencies",
+                "Check current package.json for existing dependencies", 
+                "Run pnpm add commands for missing dependencies",
+                "Verify installation with compilation test"
+              ],
+              "commands": [
+                "pnpm --filter connection add zod@^3.25.71",
+                "pnpm --filter connection add @google-cloud/bigquery@^8.1.0",
+                "pnpm --filter connection add uuid@^11.1.0", 
+                "pnpm --filter connection add -D vitest@^3.2.4 @vitest/ui@^3.2.4"
+              ],
+              "files_created": [],
+              "files_modified": ["packages/connection/package.json", "pnpm-lock.yaml"]
+            },          "validation": {
             "understanding_check": {
               "what_am_i_doing": "Installing TypeScript packages for database connectivity and validation",
               "why_these_packages": "zod for validation, bigquery for database, uuid for IDs, vitest for testing",
@@ -185,13 +236,19 @@
             "files_modified": [],
             "validation_commands": ["pnpm --filter connection build"]
           },
-          "validation": {
-            "understanding_check": {
-              "what_am_i_creating": "TypeScript interfaces for all API request/response objects",
-              "why_exact_matching": "Ensures API compatibility and prevents integration issues",
-              "key_types_needed": ["Connection", "ConnectionRequest", "QueryRequest", "QueryResponse"],
-              "confidence_threshold": 8
-            },
+            "validation": {
+              "understanding_check": {
+                "what_am_i_doing": "Installing TypeScript packages for database connectivity and validation",
+                "why_these_packages": "zod for validation, bigquery for database, uuid for IDs, vitest for testing",
+                "potential_issues": ["Version conflicts", "Network connectivity issues"],
+                "confidence_threshold": 9
+              },
+              "context_health_check": {
+                "poisoning_detection": "Verify no hallucinated package names or versions",
+                "confusion_prevention": "Confirm packages are relevant to stated objectives",
+                "clash_detection": "Check for contradictory version requirements",
+                "distraction_monitoring": "Ensure focus remains on dependency installation"
+              },
             "progress_checkpoints": [
               "Each type file exports expected interfaces",
               "No TypeScript compilation errors",
@@ -281,13 +338,43 @@
       "focus_principle": "Process only information needed for current task",
       "context_refresh": "Reload essential context at phase boundaries",
       "information_filtering": "Exclude non-essential details from active context",
-      "progressive_disclosure": "Reveal complexity gradually as needed"
+      "progressive_disclosure": "Reveal complexity gradually as needed",
+      "token_budgeting": {
+        "task_allocation": "60% current task, 25% dependencies, 15% background",
+        "dynamic_adjustment": "Reallocate based on task complexity",
+        "overflow_handling": "Compress or delegate when approaching limits"
+      }
     },
     "decision_point_handling": {
       "simple_decisions": "Use heuristics and established patterns",
-      "complex_decisions": "Employ Tree-of-Thoughts analysis",
+      "complex_decisions": "Employ Tree-of-Thoughts analysis or delegate to child agent",
       "uncertain_decisions": "Seek clarification rather than assume",
-      "critical_decisions": "Full analysis with multiple alternatives"
+      "critical_decisions": "Full analysis with multiple alternatives using isolated context"
+    },
+    "context_engineering_strategies": {
+      "write_context": {
+        "scratchpads": "Use phase state for intermediate decisions and progress tracking",
+        "memories": "Persist critical decisions and patterns across phases",
+        "state_management": "Isolate working memory from long-term context"
+      },
+      "select_context": {
+        "dynamic_loading": "Load information just-in-time based on current needs",
+        "relevance_filtering": "Include only context relevant to immediate task",
+        "tool_selection": "Use semantic search for large tool sets",
+        "memory_retrieval": "Fetch relevant past decisions and patterns"
+      },
+      "compress_context": {
+        "summarization_triggers": "Auto-compact at 95% context window capacity",
+        "essential_preservation": "Always retain critical decisions and validation results",
+        "trajectory_compression": "Summarize user-agent interaction patterns",
+        "tool_output_compression": "Summarize verbose tool responses"
+      },
+      "isolate_context": {
+        "agent_delegation": "Use child agents for research, testing, validation tasks",
+        "sandbox_isolation": "Run tool calls in isolated environments",
+        "state_partitioning": "Separate coordination context from execution context",
+        "context_boundaries": "Clear handoff protocols between agents"
+      }
     }
   },
   "error_recovery": {

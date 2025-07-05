@@ -1,14 +1,134 @@
 # LLM Planning Best Practices
 
-**Version**: 2.0  
-**Date**: July 4, 2025  
-**Scope**: Consolidated best practices for effective LLM-driven development planning  
+**Version**: 3.0  
+**Date**: July 5, 2025 (Updated with production insights)  
+**Scope**: Consolidated best practices for effective LLM-driven development planning with Context Engineering  
+**New Research**: Production patterns from Claude Code, Anthropic, ChatGPT, and context failure analysis
 
 ## Executive Summary
 
-This document consolidates research-based best practices for creating effective LLM planning systems. Based on Context Engineering principles and practical experience with the Virgil monorepo planning format, these practices focus on maximizing execution reliability while maintaining development velocity.
+This document consolidates research-based best practices for creating effective LLM planning systems. Updated with new Context Engineering insights from production systems and context failure mode analysis, these practices focus on maximizing execution reliability while preventing the four major context failure modes: poisoning, distraction, confusion, and clash.
 
 ## Core Best Practices
+
+### 0. Master/Child Agent Delegation (NEW - Critical Pattern)
+
+**Principle**: Use master agent for coordination, child agents for isolated task execution
+
+**Why This Matters**: Prevents context pollution from intermediate reasoning while maintaining coordination benefits.
+
+**Evidence**: Anthropic's multi-agent researcher used 15x more tokens but achieved better results through context isolation.
+
+**Implementation Pattern**:
+```json
+{
+  "agent_coordination": {
+    "master_responsibilities": [
+      "High-level objective tracking",
+      "Task decomposition and sequencing", 
+      "Integration of child agent results",
+      "Progress monitoring and decision making"
+    ],
+    "child_responsibilities": [
+      "Isolated task execution with focused context",
+      "Research and information gathering",
+      "Testing and validation",
+      "Specialized analysis and processing"
+    ],
+    "handoff_protocol": {
+      "clean_delegation": "Master provides only task-specific context to children",
+      "structured_returns": "Children return only results, no reasoning traces",
+      "error_isolation": "Child failures don't pollute master context",
+      "sequential_execution": "Master waits for child completion before proceeding"
+    }
+  }
+}
+```
+
+**Practical Guidelines**:
+- ✅ **Delegate research tasks**: Use child agents for documentation lookup and analysis
+- ✅ **Isolate testing**: Run tests in child agent contexts to avoid error pollution
+- ✅ **Separate validation**: Use child agents for code review and compliance checking
+- ✅ **Clean handoffs**: Children return structured results only, no intermediate thinking
+- ❌ **Avoid role-playing**: Don't simulate multiple agents in single context
+- ❌ **Don't share reasoning**: Keep child agent thinking isolated from master
+
+### 1. Context Failure Prevention (NEW - Production-Critical)
+
+**Principle**: Actively monitor and prevent the four major context failure modes
+
+**Context Failure Modes**:
+
+#### Context Poisoning Prevention
+```json
+{
+  "poisoning_prevention": {
+    "detection_triggers": [
+      "Repeated impossible goals or objectives",
+      "Contradictory facts appearing in context",
+      "Fabricated references or non-existent resources"
+    ],
+    "mitigation_strategies": [
+      "Context quarantine for uncertain information",
+      "Confidence thresholds for generated content",
+      "Rollback to last validated state on detection"
+    ]
+  }
+}
+```
+
+#### Context Distraction Mitigation
+```json
+{
+  "distraction_mitigation": {
+    "performance_thresholds": {
+      "large_models": "Monitor degradation beyond 100k tokens",
+      "smaller_models": "Monitor degradation beyond 32k tokens"
+    },
+    "prevention_strategies": [
+      "Auto-compaction at 95% context window capacity",
+      "Dynamic context loading instead of front-loading",
+      "Prioritize current task over historical context"
+    ]
+  }
+}
+```
+
+#### Context Confusion Prevention
+```json
+{
+  "confusion_prevention": {
+    "relevance_filtering": [
+      "Semantic tool selection for large tool sets",
+      "Remove irrelevant information before LLM calls",
+      "Dynamic loading of context based on current needs"
+    ],
+    "tool_management": [
+      "Use RAG for tool selection when >10 tools available",
+      "Provide only relevant tools for current task",
+      "Remove tool descriptions that don't match current objective"
+    ]
+  }
+}
+```
+
+#### Context Clash Resolution
+```json
+{
+  "clash_resolution": {
+    "conflict_detection": [
+      "Information versioning and source tracking",
+      "Contradiction detection between context sources",
+      "Validation of information consistency"
+    ],
+    "resolution_procedures": [
+      "Explicit conflict resolution protocols",
+      "Source prioritization rules",
+      "Human escalation for unresolvable conflicts"
+    ]
+  }
+}
+```
 
 ### 1. Structure Information Hierarchically
 
@@ -34,7 +154,43 @@ This document consolidates research-based best practices for creating effective 
 - ❌ **Avoid information dumping**: Don't include everything at once
 - ❌ **Don't bury the objective**: Keep the main goal prominent
 
-### 2. Include Explicit Reasoning Chains
+### 4. Auto-Compaction System (NEW - Claude Code Pattern)
+
+**Principle**: Automatically compress context when approaching window limits
+
+**Why This Matters**: Prevents context window overflow while preserving essential information.
+
+**Evidence**: Claude Code's production auto-compact system at 95% threshold
+
+**Implementation Framework**:
+```json
+{
+  "auto_compaction": {
+    "trigger_threshold": "95% of context window capacity",
+    "summarization_strategy": {
+      "trajectory_summarization": "Compress user-agent interaction patterns",
+      "decision_preservation": "Always retain critical decisions and rationale",
+      "tool_output_compression": "Summarize verbose tool responses",
+      "error_pattern_retention": "Keep error patterns for learning"
+    },
+    "rollback_capability": {
+      "checkpoint_creation": "Save state before major operations",
+      "rollback_triggers": ["Validation failures", "Context poisoning detection"],
+      "recovery_procedure": "Return to last known good state with clean context"
+    }
+  }
+}
+```
+
+**Practical Guidelines**:
+- ✅ **Monitor usage**: Track context window utilization continuously
+- ✅ **Preserve essentials**: Always retain critical decisions and validation results
+- ✅ **Compress interactions**: Summarize user-agent conversation patterns
+- ✅ **Enable rollback**: Maintain checkpoints for error recovery
+- ❌ **Don't compress blindly**: Preserve information needed for current task
+- ❌ **Avoid lossy compression**: Don't lose critical decision rationale
+
+### 5. Include Explicit Reasoning Chains
 
 **Principle**: Make decision-making processes transparent to improve LLM understanding
 
@@ -76,7 +232,65 @@ This document consolidates research-based best practices for creating effective 
 }
 ```
 
-### 3. Manage Context Inheritance
+### 6. Context Engineering Workflow Integration (NEW)
+
+**Principle**: Apply systematic Write/Select/Compress/Isolate strategies
+
+**Why This Matters**: Provides structured approach to context management as engineering discipline.
+
+**Evidence**: LangChain's four-strategy framework from production analysis
+
+**Four-Strategy Implementation**:
+
+#### Write Context Strategy
+```json
+{
+  "write_context": {
+    "scratchpads": "Use task state for intermediate decisions and progress tracking",
+    "memories": "Persist critical decisions and patterns across phases",
+    "state_management": "Isolate working memory from long-term context",
+    "persistence_triggers": ["Phase completions", "Critical decisions", "Error patterns"]
+  }
+}
+```
+
+#### Select Context Strategy  
+```json
+{
+  "select_context": {
+    "dynamic_loading": "Just-in-time context retrieval based on current needs",
+    "relevance_filtering": "Include only context relevant to immediate task",
+    "tool_selection": "Semantic search for large tool sets",
+    "memory_retrieval": "Fetch relevant past decisions and patterns"
+  }
+}
+```
+
+#### Compress Context Strategy
+```json
+{
+  "compress_context": {
+    "summarization_triggers": "Auto-compact at threshold or phase transitions",
+    "essential_preservation": "Always retain critical decisions and validation results",
+    "trajectory_compression": "Summarize interaction patterns",
+    "tool_output_compression": "Compress verbose tool responses"
+  }
+}
+```
+
+#### Isolate Context Strategy
+```json
+{
+  "isolate_context": {
+    "agent_delegation": "Use child agents for research, testing, validation",
+    "sandbox_isolation": "Run tool calls in isolated environments",
+    "state_partitioning": "Separate coordination from execution context",
+    "context_boundaries": "Clear handoff protocols between agents"
+  }
+}
+```
+
+### 7. Manage Context Inheritance
 
 **Principle**: Explicitly manage context flow between execution phases
 
@@ -147,7 +361,7 @@ This document consolidates research-based best practices for creating effective 
 }
 ```
 
-### 5. Provide Structured Error Recovery
+### 9. Provide Structured Error Recovery
 
 **Principle**: Anticipate failures and provide clear recovery procedures
 
@@ -436,6 +650,12 @@ This document consolidates research-based best practices for creating effective 
 
 ### Quantitative Metrics
 
+#### Context Engineering Effectiveness (NEW)
+- **Context Failure Rate**: Percentage of tasks affected by poisoning/distraction/confusion/clash
+- **Context Window Utilization**: Average and peak context usage across tasks
+- **Auto-Compaction Frequency**: How often context compression is triggered
+- **Child Agent Success Rate**: Percentage of delegated tasks completed successfully
+
 #### Planning Effectiveness
 - **Plan Accuracy**: Percentage of plans executed without major revisions
 - **Time Estimation**: Actual vs. estimated completion time accuracy
@@ -453,6 +673,7 @@ This document consolidates research-based best practices for creating effective 
 - **Context Retention**: Percentage of important context preserved across phases
 - **Validation Effectiveness**: Percentage of issues caught by validation checks
 - **Recovery Success**: Percentage of failures successfully recovered from
+- **Token Efficiency**: Useful work accomplished per token consumed
 
 ### Qualitative Metrics
 
@@ -470,33 +691,33 @@ This document consolidates research-based best practices for creating effective 
 
 ## Implementation Roadmap
 
-### Phase 1: Foundation (Weeks 1-2)
-**Objective**: Establish core Context Engineering principles
-- Implement information hierarchy in existing plans
-- Add reasoning chains to complex decisions
-- Establish context inheritance patterns
-- Create validation checkpoint templates
+### Phase 1: Context Engineering Foundation (Weeks 1-2)
+**Objective**: Implement production-validated context engineering patterns
+- Implement master/child agent delegation framework
+- Add context failure detection and monitoring
+- Establish dynamic context loading strategies
+- Create auto-compaction system design
 
-### Phase 2: Enhancement (Weeks 3-4)
-**Objective**: Add advanced features and improve quality
+### Phase 2: Core Enhancement (Weeks 3-4)
+**Objective**: Integrate advanced context management features
+- Implement Write/Select/Compress/Isolate workflow
+- Add reasoning chains with context isolation
+- Establish context inheritance with failure prevention
+- Create comprehensive validation with context health checks
+
+### Phase 3: Advanced Features (Weeks 5-6)
+**Objective**: Add sophisticated decision-making and optimization
 - Implement Tree-of-Thoughts for critical decisions
-- Add comprehensive validation chains
-- Develop specialized agent prompts
-- Create error recovery procedures
+- Add context quality metrics and monitoring
+- Develop specialized agent coordination patterns
+- Create adaptive context management strategies
 
-### Phase 3: Optimization (Weeks 5-6)
-**Objective**: Refine and optimize based on usage
-- Gather feedback and measure effectiveness
-- Refine templates based on real-world usage
-- Optimize for different project types and complexities
-- Establish continuous improvement processes
-
-### Phase 4: Scaling (Weeks 7-8)
-**Objective**: Scale across teams and projects
-- Train additional teams on enhanced formats
-- Create format variants for different domains
-- Implement automated quality checks
-- Establish center of excellence for planning
+### Phase 4: Production Optimization (Weeks 7-8)
+**Objective**: Scale and optimize for production use
+- Measure context engineering effectiveness
+- Optimize token usage and cost efficiency
+- Refine based on production feedback
+- Establish context engineering best practices center
 
 ## Conclusion
 
