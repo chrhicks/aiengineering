@@ -7,7 +7,7 @@
 ## Quick Navigation
 
 ### 🎯 **Start Here** (New to Context Engineering)
-- [**Research Overview**](./00-README.md) - Project summary and key findings
+- [**Research Overview**](./README.md) - Project summary and key findings
 - [**Executive Summary**](./00-EXECUTIVE-SUMMARY.md) - 2-minute overview for decision makers
 - [**Quick Reference**](./00-QUICK-REFERENCE.md) - Essential patterns and checklists
 - [**Research Guide**](./00-RESEARCH-GUIDE.md) - Academic methodology and findings
@@ -29,8 +29,8 @@
 - [**Task Structure Examples**](./03-task-structure-examples.json) - Before/after examples
 
 ### 📋 **Meta-Documentation** (About This Repository)
-- [**AGENTS.md**](./99-AGENTS.md) - Repository structure and standards
-- [**CLAUDE.md**](./99-CLAUDE.md) - Claude Code guidance for this project
+- [**AGENTS.md**](./AGENTS.md) - Repository structure and standards
+- [**CLAUDE.md**](./CLAUDE.md) - Claude Code guidance for this project
 
 ---
 
